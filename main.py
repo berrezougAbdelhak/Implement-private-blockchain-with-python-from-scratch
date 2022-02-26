@@ -15,5 +15,6 @@ if __name__ == '__main__':
 
     a=[(1,2),(3,4),(5,6)]
     a[0][0]=5
+    print("rani f main ")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
