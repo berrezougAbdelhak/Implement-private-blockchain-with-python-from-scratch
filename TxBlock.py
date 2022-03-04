@@ -16,6 +16,9 @@ class TxBlock(CBlock):
     def is_valid(self):
         if not  super(TxBlock,self).is_valid():
             return False
+        for tx in self.data:
+            if not tx.is_valid():
+                return False
         return True
 
 
@@ -74,22 +77,23 @@ if __name__=="__main__":
 
     loadfile=open("block.dat","rb")
     load_B1=pickle.load(loadfile)
-
     
+
     for b in [root,B1,load_B1,load_B1.previousBlock]:
         
         if b.is_valid():
             print("Success !! block is valid ")
 
-        else:
+        else: 
             print("ERROR !! block is not valid ")
+
 
     B2=TxBlock(B1)
     Tx5=Tx()
     Tx5.add_input(pu3,1)
     Tx5.add_output(pu1,100)
     Tx5.sign(pr3)
-
+    B2.addTx(Tx5)
     load_B1.previousBlock.addTx(Tx4)
 
     for b in [B2,load_B1]:

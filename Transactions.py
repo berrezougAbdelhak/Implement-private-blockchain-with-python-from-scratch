@@ -61,6 +61,34 @@ class Tx:
         data.append(self.outputs)
         data.append(self.reqd)
         return data
+    
+    def __repr__(self) -> str:
+        reprstr="INPUTS : \n"
+
+        for adr,amnt in self.inputs:
+            reprstr=reprstr+str(amnt) + " from " + str(adr) +" \n "
+        
+        reprstr=reprstr+ "OUTPUS : \n"
+
+        for adr,amnt in self.outputs:
+            reprstr=reprstr+str(amnt) + " to " + str(adr) +" \n "
+
+        reprstr=reprstr+ "requirds : \n"
+
+        for r in self.reqd:
+            reprstr=reprstr+str(r) +" \n "
+
+        reprstr=reprstr+ "Signature : \n"
+
+        for s in self.sigs:
+            reprstr=reprstr+str(s) +" \n "
+
+        reprstr=reprstr+ "\n  END: \n"   
+
+        return  reprstr
+        
+
+
 if __name__ == "__main__":
     pr1,pu1=sgn.generate_key()
     pr2,pu2=sgn.generate_key()
