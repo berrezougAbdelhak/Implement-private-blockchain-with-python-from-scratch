@@ -1,4 +1,4 @@
 def fonction():
-    print("a")
+    print("salam elikom a")
 
 fonction

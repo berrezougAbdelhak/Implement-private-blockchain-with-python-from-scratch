@@ -14,7 +14,7 @@ class Tx:
 
     def add_input(self,from_addr,amount):
         self.inputs.append((from_addr,amount))
-    def add_output(self,to_addr,amount):
+    def add_output(self,to_addr,amount):    
         self.outputs.append((to_addr,amount))
     def add_reqd(self,addr):
         self.reqd.append(addr)
@@ -23,33 +23,36 @@ class Tx:
         newsig=sgn.sign(message,private)
         self.sigs.append(newsig)
     def is_valid(self):
-        message=self.__gather
-        total_in=0
-        total_out=0
+        total_in = 0
+        total_out = 0
+        message = self.__gather()
         for addr,amount in self.inputs:
-                found=False
-                for s in self.sigs:
-                    if sgn.verify(message,s,addr):
-                        found=True
-                if not found:
-                    return False
-                if amount<0:
-                    return False  
-                total_in=total_in+amount      
-        for addr in self.reqd:
-            found=False
+            found = False
             for s in self.sigs:
-                if sgn.verify(message,s,addr):
-                    found=True
-                if not found:
-                    return False
-        for addr,amount in self.outputs:
-            if amount<0:
+                if sgn.verify(message, s, addr) :
+                    found = True
+            if not found:
+                #print ("No good sig found for " + str(message))
                 return False
-            total_out=total_out+amount
-        if total_out>total_in:
-            return False
+            if amount < 0:
+                return False
+            total_in = total_in + amount
+        for addr in self.reqd:
+            found = False
+            for s in self.sigs:
+                if sgn.verify(message, s, addr) :
+                    found = True
+            if not found:
+                return False
+        for addr,amount in self.outputs:
+            if amount < 0:
+                return False
+            total_out = total_out + amount
 
+        if total_out > total_in:
+            #print("Outputs exceed inputs")
+            return False
+        
         return True
 
     def __gather(self):
@@ -93,7 +96,7 @@ if __name__ == "__main__":
             print("Success !! tx is valid")
         else:
             print('ERROR !! tx is invalid ')
-    #Wrong signature
+    #Wrong sgn
     Tx4=Tx()
     Tx4.add_input(pu1,1)
     Tx4.add_output(pu2,1)
@@ -131,7 +134,7 @@ if __name__ == "__main__":
     Tx9.add_input(pu1, 1)
     Tx9.add_output(pu2, 1)
     Tx9.sign(pr1)
-    outputs = [(pu2,1)]
+    #outputs = [(pu2,1)]
     # change to [(pu3,1)]
     Tx9.outputs[0] = (pu3, 1)
 
@@ -140,5 +143,3 @@ if __name__ == "__main__":
             print("ERROR ! Bad Tx is valid")
         else:
             print("Success ! Bad Tx is invalid")
-
-
