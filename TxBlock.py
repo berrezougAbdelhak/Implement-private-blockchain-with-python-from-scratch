@@ -1,5 +1,6 @@
 import pickle
 from plistlib import load
+import time
 from turtle import pu
 from Signature import generate_key, verify
 from Signature import sign
@@ -7,19 +8,45 @@ from Transactions import Tx
 from BlockChain import CBlock
 from cryptography.hazmat.primitives import serialization
 class TxBlock(CBlock):
-
+    reward =25.0
+    nonce="AAAAAAA"
     def __init__(self,previousBlock):
         super(TxBlock,self).__init__([],previousBlock)
 
     def addTx(self,Tx_in):
         self.data.append(Tx_in)
+    #Two underscore to say that is a private function of TxBlock and it shouldn't be use outside 
+    def __count_totals(self):
+        total_in=0
+        total_out=0
+        for tx in self.data:
+            for addr,amount in tx.inputs:
+                total_in=total_in+amount
+
+            for addr,amount in tx.outputs:
+                total_out=total_out+amount
+        return total_in,total_out
+
     def is_valid(self):
         if not  super(TxBlock,self).is_valid():
             return False
         for tx in self.data:
             if not tx.is_valid():
                 return False
+        total_in,total_out=self.__count_totals()
+        if total_out-total_in-TxBlock.reward>0.000000000000001:
+            return False
+
         return True
+
+    def good_nonce(slef):
+        return False
+    def find_nonce(self):
+        return "AAAA"
+
+    
+
+
 
 
 if __name__=="__main__":
@@ -70,6 +97,22 @@ if __name__=="__main__":
     Tx4.sign(pr1)
     Tx4.sign(pr3)
     B1.addTx(Tx4)
+    start=time.time()
+    print(B1.find_nonce())
+    elapsed=time.time()-start
+    print("elapsed time : "+str(elapsed) +" S.")
+    if elapsed <60:
+        print("ERROR ! mining is to fast ")
+
+        
+    
+
+
+    if B1.good_nonce():
+        print("Success !! nonce is good ")
+    else:
+        print("Error !! bad nonce")
+    
 
     savefile=open("block.dat","wb")
     pickle.dump(B1,savefile)
@@ -86,7 +129,12 @@ if __name__=="__main__":
 
         else: 
             print("ERROR !! block is not valid ")
-
+    if B1.good_nonce():
+        print("Success !! nonce is good after save and load !  ")
+    else:
+        print("Error! bad nonce after load !")
+    #The miner 
+    pr4, pu4 = generate_key()
 
     B2=TxBlock(B1)
     Tx5=Tx()
@@ -103,17 +151,43 @@ if __name__=="__main__":
         else:
             print("Success !!  Bad block detected ")
     
-    
+    B3=TxBlock(B2)
+    B3.addTx(Tx2)
+    B3.addTx(Tx3)
+    B3.addTx(Tx4)
+    Tx6=Tx()
+    Tx6.add_output(pu4,25)
+    B3.addTx(Tx6)
+    if B3.is_valid():
+        print("Success !! block reward success ")
+    else:
+        print("ERROR !!  block reward fail ")
 
 
+    B4=TxBlock(B3)
+    B4.addTx(Tx2)
+    B4.addTx(Tx3)
+    B4.addTx(Tx4)
+    Tx7=Tx()
+    Tx7.add_output(pu4,25.2)
+    B4.addTx(Tx7)
+    if B4.is_valid():
+        print("Success !! Tx fees  success ")
+    else:
+        print("ERROR !!  Tx fees  fail ")
 
-
-
-
-
-
-
-
+    #Greedy Mind 
+    B5=TxBlock(B4)
+    B5.addTx(Tx2)
+    B5.addTx(Tx3)
+    B5.addTx(Tx4)
+    Tx8=Tx()
+    Tx8.add_output(pu4,26)
+    B5.addTx(Tx8)
+    if not B5.is_valid():
+        print("Success !! Greedy miner detected ")
+    else:
+        print("ERROR !!  Greedy miner not detected ")
 
 
 

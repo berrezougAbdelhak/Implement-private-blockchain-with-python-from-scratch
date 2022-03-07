@@ -1,5 +1,6 @@
 #Transactions
 import Signature as sgn
+
 class Tx:
     inputs=None
     outputs=None
@@ -49,9 +50,9 @@ class Tx:
                 return False
             total_out = total_out + amount
 
-        if total_out > total_in:
-            #print("Outputs exceed inputs")
-            return False
+        # if total_out > total_in:
+        #     #print("Outputs exceed inputs")
+        #     return False
         
         return True
 
@@ -171,3 +172,4 @@ if __name__ == "__main__":
             print("ERROR ! Bad Tx is valid")
         else:
             print("Success ! Bad Tx is invalid")
+
