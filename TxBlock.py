@@ -1,5 +1,6 @@
 import pickle
 from plistlib import load
+import random
 import time
 from turtle import pu
 from Signature import generate_key, verify
@@ -7,9 +8,12 @@ from Signature import sign
 from Transactions import Tx
 from BlockChain import CBlock
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
 class TxBlock(CBlock):
     reward =25.0
     nonce="AAAAAAA"
+    leading_zeros=3
+    next_char_limit=20
     def __init__(self,previousBlock):
         super(TxBlock,self).__init__([],previousBlock)
 
@@ -39,10 +43,25 @@ class TxBlock(CBlock):
 
         return True
 
-    def good_nonce(slef):
-        return False
+    def good_nonce(self):
+        digest = hashes.Hash(hashes.SHA256())
+        digest.update(bytes(str(self.data),"utf-8"))
+        digest.update(bytes(str(self.previousHash),"utf-8"))
+        digest.update(bytes(str(self.nonce),"utf-8"))
+        this_hash=digest.finalize()
+        print(this_hash[:self.leading_zeros])
+        #print("this hash: ", str(this_hash[:self.leading_zeros]))
+        #return this_hash[:self.leading_zeros]==bytes(''.join(["\x4f" for i in range(self.leading_zeros)]))
+        if this_hash[:self.leading_zeros]!=bytes("".join(["\x00" for i in range(self.leading_zeros)]),"utf-8"):
+            return False
+        return int(this_hash[self.leading_zeros]<self.next_char_limit)
+        
     def find_nonce(self):
-        return "AAAA"
+        for i in range(100000):
+            self.nonce=''.join([chr(random.randint(0,255)) for i in range(10*self.leading_zeros)])
+            if self.good_nonce():
+                return True
+        return None
 
     
 
@@ -104,7 +123,7 @@ if __name__=="__main__":
     if elapsed <60:
         print("ERROR ! mining is to fast ")
 
-        
+
     
 
 
@@ -113,7 +132,6 @@ if __name__=="__main__":
     else:
         print("Error !! bad nonce")
     
-
     savefile=open("block.dat","wb")
     pickle.dump(B1,savefile)
     savefile.close()
@@ -129,7 +147,7 @@ if __name__=="__main__":
 
         else: 
             print("ERROR !! block is not valid ")
-    if B1.good_nonce():
+    if load_B1.good_nonce():
         print("Success !! nonce is good after save and load !  ")
     else:
         print("Error! bad nonce after load !")
@@ -162,7 +180,8 @@ if __name__=="__main__":
         print("Success !! block reward success ")
     else:
         print("ERROR !!  block reward fail ")
-
+    
+    
 
     B4=TxBlock(B3)
     B4.addTx(Tx2)
