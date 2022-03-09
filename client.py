@@ -33,5 +33,5 @@ if __name__=="__main__":
     B1=TxBlock(None)
     B1.addTx(Tx1)
     B1.addTx(Tx2)
-    sendBlock("192.168.148.74",B1)
-    sendBlock("192.168.148.74",Tx2)
+    sendBlock("localhost",B1)
+    sendBlock("localhost",Tx2)

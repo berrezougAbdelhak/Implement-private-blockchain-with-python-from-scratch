@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 class TxBlock(CBlock):
     reward =25.0
     nonce="AAAAAAA"
-    leading_zeros=2
+    leading_zeros=1
     next_char_limit=20
     def __init__(self,previousBlock):
         super(TxBlock,self).__init__([],previousBlock)
@@ -49,7 +49,7 @@ class TxBlock(CBlock):
         digest.update(bytes(str(self.previousHash),"utf-8"))
         digest.update(bytes(str(self.nonce),"utf-8"))
         this_hash=digest.finalize()
-        print(this_hash[:self.leading_zeros])
+        #print(this_hash[:self.leading_zeros])
         #print("this hash: ", str(this_hash[:self.leading_zeros]))
         #return this_hash[:self.leading_zeros]==bytes(''.join(["\x4f" for i in range(self.leading_zeros)]))
         if this_hash[:self.leading_zeros]!=bytes("".join(["\x00" for i in range(self.leading_zeros)]),"utf-8"):
@@ -62,6 +62,7 @@ class TxBlock(CBlock):
             if self.good_nonce():
                 return True
         return None
+
 
     
 
