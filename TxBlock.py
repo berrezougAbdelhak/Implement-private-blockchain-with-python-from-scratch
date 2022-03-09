@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes
 class TxBlock(CBlock):
     reward =25.0
     nonce="AAAAAAA"
-    leading_zeros=3
+    leading_zeros=2
     next_char_limit=20
     def __init__(self,previousBlock):
         super(TxBlock,self).__init__([],previousBlock)
