@@ -51,6 +51,3 @@ if __name__=="__main__":
         print("ERROR!!  couldn't detect tampering")
     else:
         print("Sucess !! Tampering detected ")
-    
- 
-

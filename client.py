@@ -35,3 +35,4 @@ if __name__=="__main__":
     B1.addTx(Tx2)
     sendBlock("localhost",B1)
     sendBlock("localhost",Tx2)
+

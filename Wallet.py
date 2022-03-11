@@ -34,7 +34,6 @@ server=SocketUtils.newServerConnection("localhost",5006)
 for i in range(30):
     newBlock=SocketUtils.recvObj(server)
     if newBlock:
-        print("je sors ici ")
         break
 server.close()
 
@@ -47,11 +46,7 @@ if newBlock.good_nonce():
 print(Tx1.is_valid())
 print(Tx2.is_valid())
 for tx in newBlock.data:
-    if tx.inputs[0][0]==pu1 and tx.inputs[0][1]==4.0:
+    if tx.inputs[0][0] == pu1 and tx.inputs[0][1] == 4.0:
         print("Tx1 is present ")
     if tx.inputs[0][0]==pu3 and tx.inputs[0][1]==4.0:
         print("Tx2 is present ")
-    
-
-
-
