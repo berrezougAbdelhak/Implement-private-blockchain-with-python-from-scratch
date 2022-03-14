@@ -56,8 +56,8 @@ class TxBlock(CBlock):
             return False
         return int(this_hash[self.leading_zeros]<self.next_char_limit)
         
-    def find_nonce(self):
-        for i in range(100000):
+    def find_nonce(self,n_tries=1000000):
+        for i in range(n_tries):
             self.nonce=''.join([chr(random.randint(0,255)) for i in range(10*self.leading_zeros)])
             if self.good_nonce():
                 return True

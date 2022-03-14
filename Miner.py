@@ -1,13 +1,16 @@
 from ast import arg
 from concurrent.futures import thread
+from sqlite3 import Time
+import time
 import Transactions 
 import SocketUtils
 from TxBlock import TxBlock
 import Signature
 from threading import Thread
-wallets=[("localhost",5005)]
+wallets=[("localhost",5006)]
 tx_list=[]
 head_blocks=[None]
+break_now=False
 def findLonguestBlockchain():
     longuest=-1
     long_head=None
@@ -23,20 +26,20 @@ def findLonguestBlockchain():
     return long_head
 
 def minerServer(my_addr):
+    global tx_list
+    global break_now
+    head_blocks=[None]
     my_ip,my_port=my_addr
     server=SocketUtils.newServerConnection(my_ip,my_port)
-    #Get 2 Tx from wallet
 
-    for i in range(10):
+    #Get Tx from wallet
+    while not break_now:
         newTx=SocketUtils.recvObj(server)
         if isinstance(newTx,Transactions.Tx):
             tx_list.append(newTx)
             print("Recd tx")
         else:
             print("Tx no recd")
-        if len(tx_list)>=2:
-            print("Tx_list>=2")
-            break
     
      #Open Server connection
      #Rec'v 2 transaction
@@ -47,31 +50,29 @@ def minerServer(my_addr):
 
 def nonceFinder(wallet_list,miner_public):
     #add Tx to new block 
-    newBlock=TxBlock(findLonguestBlockchain())
-    newBlock.addTx(tx_list[0])
-    newBlock.addTx(tx_list[1])
-    #Compute and add mining reward 
-    total_in,total_out=newBlock.count_totals()
-    mine_reward=Transactions.Tx()
-    mine_reward.add_output(my_public,25.0+total_in-total_out)
-    newBlock.addTx(mine_reward)
-    #Fine the nonce 
-    for i in range(10):   
+    global break_now
+    while not break_now:
+        newBlock=TxBlock(findLonguestBlockchain())
+        for tx in tx_list:
+            newBlock.addTx(tx)
+        #Compute and add mining reward 
+        total_in,total_out=newBlock.count_totals()
+        mine_reward=Transactions.Tx()
+        mine_reward.add_output(miner_public,25.0+total_in-total_out)
+        newBlock.addTx(mine_reward) 
+        #Fine the nonce 
+          
         print("Finding Nonce....") 
-        newBlock.find_nonce()
+        newBlock.find_nonce(10000)
         if newBlock.good_nonce():
             print("Good nonce found")
-            break
-    if not newBlock.good_nonce():
-        print("ERROR !! couldn't find nonce")
-        return False
-    #Send new block
-    for ip_addr in wallet_list:
-        print("Sending to"+ip_addr)
-        SocketUtils.sendObj(ip_addr,newBlock,5006)
-    head_blocks.remove(newBlock.previousBlock)
-    head_blocks.append(newBlock)
-
+            
+            #Send new block
+            for ip_addr,port in wallet_list:
+                print("S ending to"+ip_addr+ ":" + str(port))
+                SocketUtils.sendObj(ip_addr,newBlock,5006)
+            head_blocks.remove(newBlock.previousBlock)
+            head_blocks.append(newBlock)
 
     return True
 
@@ -79,6 +80,8 @@ if __name__=="__main__":
     my_pr,my_pu=Signature.generate_key()
     t1=Thread(target=minerServer,args=(("localhost",5005),))
     t2=Thread(target=nonceFinder,args=(wallets,my_pu))
+
+    server=SocketUtils.newServerConnection("localhost",5006)
     t1.start()
     t2.start()
     pr1,pu1=Signature.generate_key()
@@ -107,7 +110,6 @@ if __name__=="__main__":
         print("Sent Tx2")
     except :
         print("Error !! Connection unsuccessful")
-    server=SocketUtils.newServerConnection("localhost",5006)
 
     for i in range(30):
         newBlock=SocketUtils.recvObj(server)
@@ -136,10 +138,16 @@ if __name__=="__main__":
         except:
             pass
 
+    time.sleep(20)
+    break_now=True
+    time.sleep(2)
+    server.close()
+
 
 
 
 
     t1.join()
     t2.join()
-    print(head_blocks[0])
+
+    print("Done")
