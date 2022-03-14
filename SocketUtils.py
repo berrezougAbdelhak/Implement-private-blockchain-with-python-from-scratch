@@ -18,17 +18,25 @@ def newServerConnection(ip_addr,port=TCP_PORT):
     s.bind((ip_addr,port))
     s.listen()
     return s
-def recvObj(sock):
-    inputs,outputs,error=select.select([sock],[],[sock],6)
-    if sock in inputs:
-        new_sock,addr=sock.accept()
-        all_data=b""
-        while True:
-            data=new_sock.recv(BUFFER_SIZE)
-            if not data: break
-            all_data=all_data+data
-        return pickle.loads(all_data)
-    return None
+# def recvObj(sock):
+#     inputs,outputs,error=select.select([sock],[],[sock],6)
+#     if sock in inputs:
+#         new_sock,addr=sock.accept()
+#         all_data=b""
+#         while True:
+#             data=new_sock.recv(BUFFER_SIZE)
+#             if not data: break
+#             all_data=all_data+data
+#         return pickle.loads(all_data)
+#     return None
+def recvObj(socket):
+    new_sock,addr = socket.accept()
+    all_data = b''
+    while True:
+        data = new_sock.recv(BUFFER_SIZE)
+        if not data: break
+        all_data = all_data + data
+    return pickle.loads(all_data)
 
 if __name__=="__main__":
     server=newServerConnection("localhost")

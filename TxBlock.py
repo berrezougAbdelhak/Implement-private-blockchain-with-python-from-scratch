@@ -62,7 +62,19 @@ class TxBlock(CBlock):
             if self.good_nonce():
                 return True
         return None
-
+    def findLonguestBlockchain(head_blocks):
+        longuest=-1
+        long_head=None
+        for b in head_blocks:
+            current=b
+            this_len=0
+            while current!=None:
+                this_len=this_len+1
+                current=current.previousBlock
+            if this_len>longuest:
+                long_head=b
+                longuest=this_len
+        return long_head
 
     
 

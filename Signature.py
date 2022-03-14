@@ -53,6 +53,39 @@ def verify(message,sig,pu_ser):
         print("Error executing public_key.verify")
         return False
 
+def savePrivate(pr_key,filename):
+    pem = pr_key.private_bytes(
+   encoding=serialization.Encoding.PEM,
+   format=serialization.PrivateFormat.PKCS8,
+   encryption_algorithm=serialization.BestAvailableEncryption(b'mypassword')
+    )
+    fp=open(filename,"wb")
+    fp.write(pem)
+    fp.close()
+    return True
+
+def loadPrivate(filename):
+    fin=open(filename,"rb")
+    pr_key = serialization.load_pem_private_key(
+        fin.read(),
+        password=b'mypassword',
+    )
+    fin.close()
+    return pr_key
+def savePublic(pu_key,filename):
+    fp=open(filename,"wb")
+    fp.write(pu_key)
+    fp.close()
+
+    return True
+
+def loadPublic(filename):
+    fin=open(filename,"rb")
+    pu_key=fin.read()
+    fin.close()
+    return pu_key
+ 
+    
    
 
 
@@ -72,3 +105,24 @@ if __name__ == "__main__":
 
     bad_message=message+b"Q"
     print("Altering the message : ",verify(bad_message,sig,pu))
+    
+    savePrivate(pr2,"private.key")
+    pr_load=loadPrivate("private.key")
+    sig3=sign(message,pr_load)
+    correct=verify(message,sig3,pu2)
+
+    if correct:
+        print("Succcess !! Good loaded private key")
+    else:
+        print("ERROR ! load private key is bad ")
+
+    savePublic(pu2,"public.key")
+    pu_load=loadPublic("public.key")
+
+    correct=verify(message,sig3,pu_load)
+
+    if correct:
+        print("Success !! Good loaded key")
+    else:
+        print("ERROR!! load public key is bad ")
+

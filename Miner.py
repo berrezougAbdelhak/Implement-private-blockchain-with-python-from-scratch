@@ -1,30 +1,19 @@
 from ast import arg
 from concurrent.futures import thread
+from glob import glob
 from sqlite3 import Time
-import time
 import Transactions 
 import SocketUtils
-from TxBlock import TxBlock
-import Signature
-from threading import Thread
+import TxBlock
+
 wallets=[("localhost",5006)]
 tx_list=[]
 head_blocks=[None]
 break_now=False
-def findLonguestBlockchain():
-    longuest=-1
-    long_head=None
-    for b in head_blocks:
-        current=b
-        this_len=0
-        while current!=None:
-            this_len=this_len+1
-            current=current.previousBlock
-        if this_len>longuest:
-            long_head=b
-            longuest=this_len
-    return long_head
-
+verbose=False
+def stopAll():
+    global break_now
+    break_now=True
 def minerServer(my_addr):
     global tx_list
     global break_now
@@ -37,7 +26,8 @@ def minerServer(my_addr):
         newTx=SocketUtils.recvObj(server)
         if isinstance(newTx,Transactions.Tx):
             tx_list.append(newTx)
-            print("Recd tx")
+            if verbose:
+                print("Recd tx")
         else:
             print("Tx no recd")
     
@@ -52,7 +42,7 @@ def nonceFinder(wallet_list,miner_public):
     #add Tx to new block 
     global break_now
     while not break_now:
-        newBlock=TxBlock(findLonguestBlockchain())
+        newBlock=TxBlock.TxBlock(TxBlock.TxBlock.findLonguestBlockchain(head_blocks))
         for tx in tx_list:
             newBlock.addTx(tx)
         #Compute and add mining reward 
@@ -61,22 +51,31 @@ def nonceFinder(wallet_list,miner_public):
         mine_reward.add_output(miner_public,25.0+total_in-total_out)
         newBlock.addTx(mine_reward) 
         #Fine the nonce 
-          
-        print("Finding Nonce....") 
+        PRT=5006
+        if verbose:  
+            print("Finding Nonce....") 
         newBlock.find_nonce(10000)
         if newBlock.good_nonce():
-            print("Good nonce found")
+            if verbose:
+                print("Good nonce found")
             
             #Send new block
             for ip_addr,port in wallet_list:
-                print("S ending to"+ip_addr+ ":" + str(port))
+                if verbose:
+                    print("S ending to"+ip_addr+ ":" + str(port))
                 SocketUtils.sendObj(ip_addr,newBlock,5006)
             head_blocks.remove(newBlock.previousBlock)
             head_blocks.append(newBlock)
+            for tx in newBlock.data:
+                if tx!=mine_reward:
+                    tx_list.remove(tx)
 
     return True
 
 if __name__=="__main__":
+    import time
+    import Signature
+    from threading import Thread
     my_pr,my_pu=Signature.generate_key()
     t1=Thread(target=minerServer,args=(("localhost",5005),))
     t2=Thread(target=nonceFinder,args=(wallets,my_pu))
@@ -126,15 +125,14 @@ if __name__=="__main__":
     print(Tx1.is_valid())
     print(Tx2.is_valid())
     for tx in newBlock.data:
-        #Try parce que miner reward n'a pas d'inputs donc une erruer out bound of range 
         try:
             if tx.inputs[0][0] == pu1 and tx.inputs[0][1] == 4.0:
-                print("Tx1 is present ")
+                print("Tx1 is present")
         except:
             pass
         try:
-            if tx.inputs[0][0] ==pu3 and tx.inputs[0][1]==4.0:
-                print("Tx2 is present ")
+            if tx.inputs[0][0] == pu3 and tx.inputs[0][1] == 4.0:
+                print("Tx2 is present")
         except:
             pass
 
