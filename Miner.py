@@ -59,18 +59,39 @@ def nonceFinder(wallet_list,miner_public):
             if verbose:
                 print("Good nonce found")
             
+            head_blocks.remove(newBlock.previousBlock)
+            head_blocks.append(newBlock)
             #Send new block
+            savePrevious=newBlock.previousBlock
+            newBlock.previousBlock=None
+
             for ip_addr,port in wallet_list:
                 if verbose:
                     print("S ending to"+ip_addr+ ":" + str(port))
                 SocketUtils.sendObj(ip_addr,newBlock,5006)
-            head_blocks.remove(newBlock.previousBlock)
-            head_blocks.append(newBlock)
+            newBlock.previousBlock=savePrevious
+            #Remove used tvs from tx_list 
             for tx in newBlock.data:
                 if tx!=mine_reward:
                     tx_list.remove(tx)
 
     return True
+import pickle
+def loadTxList(filename):
+    fin=open(filename,"rb")
+    ret=pickle.load(fin)
+    fin.close()
+    return ret
+    
+    
+def saveTxList(the_list,filename):
+    fp=open(filename,"wb")
+    pickle.dump(the_list,fp)
+    fp.close
+    return True
+
+
+
 
 if __name__=="__main__":
     import time
@@ -102,13 +123,18 @@ if __name__=="__main__":
     Tx2.sign(pr3)
     Tx2.sign(pr1)
 
-    try:
-        SocketUtils.sendObj("localhost",Tx1)
-        print("Sent Tx1")
-        SocketUtils.sendObj("localhost",Tx2)
-        print("Sent Tx2")
-    except :
-        print("Error !! Connection unsuccessful")
+    new_tx_list=[Tx1,Tx2]
+    saveTxList(new_tx_list,"Txs.dat")
+    new_new_tx_list=loadTxList("Txs.dat")
+    
+    for tx in new_tx_list:
+
+        try:
+            SocketUtils.sendObj("localhost",tx)
+            print("Sent Tx")
+            
+        except :
+            print("Error !! Connection unsuccessful")
 
     for i in range(30):
         newBlock=SocketUtils.recvObj(server)
@@ -124,6 +150,7 @@ if __name__=="__main__":
 
     print(Tx1.is_valid())
     print(Tx2.is_valid())
+    print("rani nelhag hna ")
     for tx in newBlock.data:
         try:
             if tx.inputs[0][0] == pu1 and tx.inputs[0][1] == 4.0:

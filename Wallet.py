@@ -60,7 +60,7 @@ def getBalance(pu_key):
                 if addr == pu_key:
                     bal = bal + amt
         this_block = this_block.previousBlock
-    print('bal is ',bal)
+    
     return bal
 def sendCoins(pu_send, amt_send, pr_send, pu_recv, amt_recv, miner_list):
     newTx = Transactions.Tx()
@@ -107,10 +107,13 @@ if __name__=="__main__":
 
     #Query balance
     bal1=getBalance(pu1)
+    print("bal 1:",bal1)
     bal2=getBalance(pu2)
     bal3=getBalance(pu3)
 
+    sendCoins(pu1, 1.0, pr1, pu2, 1.0, miners)
     sendCoins(pu1,1.0,pr1,pu3,0.3,miners)
+    
 
     time.sleep(2) 
 
@@ -120,6 +123,7 @@ if __name__=="__main__":
     
     #Query balance
     new1=getBalance(pu1)
+    print("new1 : ",new1)
     new2=getBalance(pu2)
     new3=getBalance(pu3)
     print("bal 3 :"+ str(bal3))
